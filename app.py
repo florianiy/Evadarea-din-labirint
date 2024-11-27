@@ -24,6 +24,7 @@ def maze_to_matrix(maze_string):
 
 
 def get_random_maze():
+    # 1<=exits<=3
     global MAZE_COUNT
     # nr = randrange(1, MAZE_COUNT + 1)
     nr = 1
@@ -34,12 +35,17 @@ def get_random_maze():
         maze = maze_to_matrix(text)
 
 
+# not impossible spawn basically
 def generate_player():
+    # d>3 to M
+    # min 3 moves to exit
+    # do now spawn in closed room
     global player_pos
     player_pos = [1, 2]
 
 
 def generate_monster():
+    # nu calea spre iesire
     global monster
     monster = (1, 3)
 

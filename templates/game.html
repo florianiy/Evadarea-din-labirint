@@ -36,7 +36,10 @@
         maze_elem.innerHTML = "";
         for (var i = 0; i < 10; i++) {
           for (var j = 0; j < 10; j++) {
-            maze_elem.innerHTML += `<span>${maze[i][j]}</span>`;
+            var it = maze[i][j];
+            maze_elem.innerHTML += `<span class="${
+              it == "?" ? "unknown" : ""
+            }">${it}</span>`;
           }
           maze_elem.innerHTML += "\n";
         }
@@ -49,7 +52,7 @@
         player = [];
         maze = [];
         for (let i = 0; i < 10; i++) {
-          maze.push(Array(10).fill("."));
+          maze.push(Array(10).fill("?"));
         }
         renderMaze();
 
