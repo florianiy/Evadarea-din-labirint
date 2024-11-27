@@ -114,7 +114,9 @@ def move():
     direction = request.args.get("direction")
     new_pos = move_player(direction)
     result = {"data": new_pos.copy()}
+    global move_counter
     if hit_exit(new_pos):
+        move_counter += 1
         result["msg"] = game_won()
         result["action"] = "WON"
     elif hit_monster(new_pos):
@@ -125,7 +127,6 @@ def move():
         result["action"] = "WALL"
     else:
         #  actual move
-        global move_counter
         move_counter += 1
         global player_pos
         player_pos = new_pos.copy()
