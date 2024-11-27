@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Maze</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='maze.css')}}" />
+  </head>
+  <body>
+    <style>
+      #infos {
+        position: fixed;
+        top: 50px;
+        width: 100%;
+        align-items: center;
+        text-align: center;
+      }
+      .hidden {
+        display: none;
+      }
+    </style>
+    <div id="infos">
+      <p id="info"></p>
+      <button id="restart" onclick="Start()" class="hidden">restart</button>
+    </div>
+    <pre id="maze"></pre>
+
+    <script>
+      const maze_elem = document.querySelector("#maze");
+      const info_elem = document.querySelector("#info");
+      const restart_elem = document.querySelector("#restart");
+
+      var maze = [];
+
+      function renderMaze() {
+        maze_elem.innerHTML = "";
+        for (var i = 0; i < 10; i++) {
+          for (var j = 0; j < 10; j++) {
+            maze_elem.innerHTML += `<span>${maze[i][j]}</span>`;
+          }
+          maze_elem.innerHTML += "\n";
+        }
+      }
+      async function Start() {
+        // reset things
+        game_over = false;
+        info_elem.textContent = "";
+        restart_elem.classList.add("hidden");
+        player = [];
+        maze = [];
+        for (let i = 0; i < 10; i++) {
+          maze.push(Array(10).fill("."));
+        }
+        renderMaze();
+
+        // ask server to reset also
+        var res = await fetch("/start");
+        player = await res.json();
+        console.warn(player);
+        CharAt(player, "P");
+        renderMaze();
+      }
+      Start();
+
+      var dirss = {
+        ArrowLeft: "L",
+        ArrowRight: "R",
+        ArrowDown: "D",
+        ArrowUp: "U",
+      };
+
+      function FinishedGame() {
+        restart_elem.classList.remove("hidden");
+        game_over = true;
+      }
+      async function CallMove(direction) {
+        if (game_over) return;
+        var res = await fetch("/move?direction=" + direction);
+        var res = await res.json();
+        info_elem.textContent = res.msg;
+
+        if (res.action == "OK") Moved(res.data);
+        else if (res.action == "WALL") CharAt(res.data, "#");
+        else if (res.action == "LOST") {
+          FinishedGame();
+          CharAt(res.data, "M");
+        } else if (res.action == "WON") {
+          Moved(res.data);
+          FinishedGame();
+        }
+      }
+
+      function CharAt(pos, char) {
+        maze[pos[1]][pos[0]] = char;
+        renderMaze();
+      }
+      async function Moved(data) {
+        maze[player[1]][player[0]] = " ";
+        player = data;
+        maze[player[1]][player[0]] = "P";
+        renderMaze();
+      }
+
+      window.addEventListener("keydown", (e) => {
+        if (Object.keys(dirss).includes(e.key)) CallMove(dirss[e.key]);
+      });
+    </script>
+  </body>
+</html>

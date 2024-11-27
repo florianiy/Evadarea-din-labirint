@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>maze builder</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='maze.css')}}" />
+  </head>
+  <body>
+    <button id="copy" onclick="Copy(event)">copy</button>
+    <pre id="maze"></pre>
+
+    <a href="/"><button>game</button></a>
+    <p>indicatii: iesiri = [1, 3] min 2 patrate intr-o camera inchisa?</p>
+
+    <script>
+      function Copy(event) {
+        navigator.clipboard.writeText(maze.textContent),
+          (event.target.textContent = "copied");
+      }
+      function Toggle(e) {
+        console.log(e);
+        e.target.textContent = e.target.textContent == "#" ? " " : "#";
+      }
+
+      const maze = document.querySelector("#maze");
+      for (var i = 0; i < 10; i++) {
+        for (var j = 0; j < 10; j++) {
+          maze.innerHTML += `<span onclick=Toggle(event)>#</span>`;
+        }
+        maze.innerHTML += "\n";
+      }
+    </script>
+  </body>
+</html>
