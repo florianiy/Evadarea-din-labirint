@@ -1,1 +1,4 @@
 random generation for player and monster and kinda that's it :)))))
+
+make the maze a grid cuz when the font changes 
+the width of the letters change and it brakes the maze 
