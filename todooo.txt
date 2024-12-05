@@ -1,4 +1,9 @@
-random generation for player and monster and kinda that's it :)))))
 
-make the maze a grid cuz when the font changes 
-the width of the letters change and it brakes the maze 
+must:
+  serverul tree sa afiseze labirintul de fiecare data(in cmd) :))))
+  atlast: player and monster generation :)))))
+  fa-i toate maze-urile diferite :))
+
+later:
+  make the maze a grid cuz when the font changes 
+  the width of the letters change and it brakes the maze 

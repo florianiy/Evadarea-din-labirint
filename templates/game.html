@@ -62,6 +62,9 @@
         console.warn(player);
         CharAt(player, "P");
         renderMaze();
+
+        var res = await fetch("/get_precomputed_id");
+        info_elem.textContent = await res.text();
       }
       Start();
 

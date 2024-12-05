@@ -1,14 +1,18 @@
+import copy
 from json import dumps
 from random import randrange
 from flask import Flask, json, render_template, request
+import random
+from collections import deque
 
 
 app = Flask(__name__)
 
 player_pos = []
-monster = ()
+monster_pos = ()
 maze = [[]]
 move_counter = 0
+precomputed_id = ""
 
 ROAD = " "
 WALL = "#"
@@ -23,11 +27,11 @@ def maze_to_matrix(maze_string):
     return maze_matrix
 
 
-def get_random_maze():
-    # 1<=exits<=3
+# 1<=exits<=3
+def get_random_maze(nr=-1):
     global MAZE_COUNT
-    # nr = randrange(1, MAZE_COUNT + 1)
-    nr = 1
+    if nr == -1:
+        nr = randrange(1, MAZE_COUNT + 1)
     filename = f"./labirinturi/{str(nr)}.txt"
     with open(filename) as f:
         text = f.read()
@@ -35,19 +39,18 @@ def get_random_maze():
         maze = maze_to_matrix(text)
 
 
-# not impossible spawn basically
-def generate_player():
-    # d>3 to M
-    # min 3 moves to exit
-    # do now spawn in closed room
-    global player_pos
-    player_pos = [1, 2]
-
-
-def generate_monster():
-    # nu calea spre iesire
-    global monster
-    monster = (1, 3)
+def generate_player_and_monster(maze_nr):
+    filename = f"./labirinturi/{str(maze_nr)}.json"
+    with open(filename) as f:
+        mlist = json.loads(f.read())
+        random_player_pos = random.randint(0, len(mlist) - 1)
+        monsters = mlist[random_player_pos]
+        global player_pos, monster_pos
+        player_pos = monsters[0]
+        random_monster = random.randint(0, len(monsters[1]) - 1)
+        monster_pos = monsters[1][random_monster]
+        global precomputed_id
+        precomputed_id = f"seed:{maze_nr}:{random_player_pos}:{random_monster}"
 
 
 def move_player(dir):
@@ -67,7 +70,7 @@ def move_player(dir):
 
 def get_char_at(pos):
     global maze
-    return maze[pos[0]][pos[1]]
+    return maze[pos[1]][pos[0]]
 
 
 def hit_exit(pos):
@@ -78,8 +81,8 @@ def hit_exit(pos):
 
 
 def hit_monster(pos):
-    global monster
-    return pos == list(monster)
+    global monster_pos
+    return pos == list(monster_pos)
 
 
 def hit_wall(pos):
@@ -108,11 +111,16 @@ def index():
 def start_game():
     global move_counter
     move_counter = 0
-    get_random_maze()
-    generate_player()
-    generate_monster()
+    get_random_maze(1)
+    generate_player_and_monster(1)
     global player_pos
     return dumps(player_pos)
+
+
+@app.route("/get_precomputed_id")
+def get_precomputed_id():
+    global precomputed_id
+    return precomputed_id
 
 
 @app.route("/move")
