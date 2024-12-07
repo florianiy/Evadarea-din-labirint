@@ -146,4 +146,4 @@ def precompute_maze_player_monster_locations(maze_nr):
     return result
 
 
-print(precompute_maze_player_monster_locations(1))
+# print(precompute_maze_player_monster_locations(1))
