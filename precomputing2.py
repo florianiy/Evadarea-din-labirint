@@ -6,6 +6,7 @@ from json import dumps
 from pprint import pprint
 
 
+# returneaza o lista cu iesirile din labirint
 def getExits(m):
     rows, cols = len(m), len(m[0])
     e = []
@@ -26,21 +27,20 @@ def getExits(m):
     return e
 
 
+# returneaza o lista cu toate pozitiile >3 distanta bfs de la fiecare iesire
 def get_possible_player_positions(maze):
-
     exits = getExits(maze)
-
     rows, cols = len(maze), len(maze[0])
     distances = [[-1] * cols for _ in range(rows)]
     queue = deque()
 
-    # Initialize BFS with all exits
+    # Initializam BFS cu iesirile
     for exit in exits:
         x, y = exit
         queue.append((x, y, 0))
         distances[x][y] = 0
 
-    # BFS to calculate distances
+    # BFS calculam toate distantele in matrice
     while queue:
         x, y, dist = queue.popleft()
 
@@ -55,6 +55,7 @@ def get_possible_player_positions(maze):
                 distances[nx][ny] = dist + 1
                 queue.append((nx, ny, dist + 1))
 
+    # returnam doar pozitiile >3
     result = [(i, j) for i in range(rows) for j in range(cols) if distances[i][j] >= 3]
     return result
 
@@ -71,6 +72,8 @@ def getMaze(id):
         return f.read()
 
 
+# inainte de apelase punem cate un monstru ca fiind zic
+# si verificam cu bfs daca mai poate iesi sau nu playeru
 def is_reachable(maze, start, exits):
     rows, cols = len(maze), len(maze[0])
     visited = [[False] * cols for _ in range(rows)]
@@ -79,7 +82,7 @@ def is_reachable(maze, start, exits):
     while queue:
         x, y = queue.popleft()
         if (x, y) in exits:
-            return True  # Found an exit
+            return True  # am gasit o iesire
 
         for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:  # Up, Down, Left, Right
             nx, ny = x + dx, y + dy
@@ -92,7 +95,7 @@ def is_reachable(maze, start, exits):
                 visited[nx][ny] = True
                 queue.append((nx, ny))
 
-    return False  # No path to any exit
+    return False  # nu exista cale de iesire
 
 
 def get_monster_positions(player_pos, maze):
@@ -100,14 +103,13 @@ def get_monster_positions(player_pos, maze):
     rows, cols = len(maze), len(maze[0])
     potential_positions = []
 
-    # Find all positions exactly 3 Manhattan distance away
-    for dx in range(-3, 4):
-        dy = 3 - abs(dx)
-        for nx, ny in [(px + dx, py + dy), (px + dx, py - dy)]:
-            if (
-                0 <= nx < rows and 0 <= ny < cols and maze[nx][ny] == " "
-            ):  # Must be within bounds and open
-                potential_positions.append((nx, ny))
+    # Cautăm poziții la exact 3 unități pe orizontală sau verticală
+    for dx, dy in [(3, 0), (-3, 0), (0, 3), (0, -3)]:
+        nx, ny = px + dx, py + dy
+        if (
+            0 <= nx < rows and 0 <= ny < cols and maze[nx][ny] == " "
+        ):  # Verificăm să fie în limite și celula liberă
+            potential_positions.append((nx, ny))
 
     return potential_positions
 
@@ -119,12 +121,12 @@ def find_valid_monster_positions(maze, players, exits):
         px, py = player_pos
         monster_positions = []
 
-        # Get potential monster positions for this player
+        # generam toate posibilele pozitii ale monstrului
         for mx, my in get_monster_positions(player_pos, maze):
-            # Temporarily block the position with a monster
+            # punem monstrul temporar in matricec
             maze[mx][my] = "#"
             all_reachable = all(is_reachable(maze, player, exits) for player in players)
-            maze[mx][my] = " "  # Restore the maze
+            maze[mx][my] = " "  # refacem matricea
 
             if all_reachable:
                 monster_positions.append([mx, my])
@@ -146,4 +148,5 @@ def precompute_maze_player_monster_locations(maze_nr):
     return result
 
 
-# print(precompute_maze_player_monster_locations(1))
+# for i in range(1, 6):
+#     precompute_maze_player_monster_locations(i)

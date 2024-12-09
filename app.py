@@ -8,6 +8,8 @@ from precomputing2 import precompute_maze_player_monster_locations
 
 app = Flask(__name__)
 
+
+# variabile globale care retin state-ul jocului
 player_pos = []
 monster_pos = ()
 maze = [[]]
@@ -21,13 +23,14 @@ MAZE_SIZE = 10
 MAZE_COUNT = 5
 
 
+# transforma un labirint text intr-o matrice
 def maze_to_matrix(maze_string):
     maze_rows = maze_string.splitlines()
     maze_matrix = [list(row) for row in maze_rows]
     return maze_matrix
 
 
-# 1<=exits<=3
+# asigneaza variabila maze cu un maze random si returneaza numarul(id-ul) lui
 def get_random_maze(nr=-1):
     global MAZE_COUNT
     if nr == -1:
@@ -40,6 +43,8 @@ def get_random_maze(nr=-1):
     return nr
 
 
+# alege o valoare random pentru player_pos si monster_pos care sunt precalculate
+# [[player1, [monster11, monster12, monster13]], [player2, [monster21, monster22]]]
 def generate_player_and_monster(maze_nr):
     filename = f"./labirinturi/{str(maze_nr)}.json"
     with open(filename) as f:
@@ -54,8 +59,8 @@ def generate_player_and_monster(maze_nr):
         precomputed_id = f"seed:{maze_nr}:{random_player_pos}:{random_monster}"
 
 
+# creaza o pozitie noua pentru player in functie de directie
 def move_player(dir):
-
     global player_pos
     new_pos = player_pos.copy()
     if dir == "U":
@@ -103,18 +108,31 @@ def game_over():
 picat pradă monstrului din labirint … ai pierdut jocul. Încerca din nou!"""
 
 
+def print_game_state():
+    global maze, player_pos, monster_pos, move_counter
+    maze_copy = [row[:] for row in maze]
+    maze_copy[player_pos[1]][player_pos[0]] = "P"
+    maze_copy[monster_pos[1]][monster_pos[0]] = "M"
+    print(f"Game State (movecounter:{move_counter})")
+    for row in maze_copy:
+        print(" ".join(row))
+
+
 @app.route("/")
 def index():
     return render_template("game.html")
 
 
+# returneaza pozitia playerului
 @app.route("/start")
 def start_game():
+    # resetam totul si alegem un nou labirint si pozitii pentru monstru si player
     global move_counter
     move_counter = 0
     maze_nr = get_random_maze()
     generate_player_and_monster(maze_nr)
     global player_pos
+    print_game_state()
     return dumps(player_pos)
 
 
@@ -124,12 +142,15 @@ def get_precomputed_id():
     return precomputed_id
 
 
+# returneaza {'msg': "", 'action': "", 'data':[]}
 @app.route("/move")
 def move():
+    # cream o noua pozitie
     direction = request.args.get("direction")
     new_pos = move_player(direction)
     result = {"data": new_pos.copy()}
     global move_counter
+    # si verificam cu noua pozitie daca a iesit, lovit monstru/zid
     if hit_exit(new_pos):
         move_counter += 1
         result["msg"] = game_won()
@@ -147,6 +168,8 @@ def move():
         player_pos = new_pos.copy()
         result["msg"] = "OK"
         result["action"] = "OK"
+
+    print_game_state()
     return dumps(result)
 
 
